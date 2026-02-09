@@ -32,6 +32,7 @@ app-router boundaries. Designed to be a clean starting point for production work
 - `src/lib`: Core utilities (env, http, logger)
 - `src/query`: Query key factories
 - `src/services`: API modules (no React Query inside)
+- `src/services/routes.ts`: Shared route helpers (params + query)
 - `src/stores`: Zustand stores
 - `src/types`: Shared types
 - `src/utils`: Utility helpers
@@ -62,16 +63,26 @@ Keep API paths centralized so changes are consistent and reviewable.
 
 File: `src/services/core/core.routes.ts`
 ```ts
+import { buildPath, withQuery } from "@/services/routes";
+
 export const coreRoutes = {
   users: {
     me: () => "/users/me",
-    byId: (id: string) => `/users/${id}`,
+    list: (query?: { search?: string; page?: number }) => withQuery("/users", query),
+    byId: (id: string) => buildPath("/users/:id", { id }),
   },
   auth: {
     login: () => "/auth/login",
   },
 };
 ```
+
+### Per-service routes
+
+Create a `*.routes.ts` for each microservice to avoid hardcoded paths.
+
+- `src/services/auth/auth.routes.ts`
+- `src/services/billing/billing.routes.ts`
 
 ## Example: Add a new API domain
 
