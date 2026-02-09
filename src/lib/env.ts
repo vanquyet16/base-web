@@ -30,6 +30,9 @@ const envSchema = z.object({
   NEXT_PUBLIC_APP_URL: optionalUrl,
   NEXT_PUBLIC_AUTH_TOKEN_KEY: z.string().min(1).default("auth_token"),
   NEXT_PUBLIC_REFRESH_TOKEN_KEY: z.string().min(1).default("refresh_token"),
+  NEXT_PUBLIC_LOG_LEVEL: z
+    .enum(["debug", "info", "warn", "error"])
+    .default("info"),
 });
 
 const parsed = envSchema.safeParse({
@@ -41,6 +44,7 @@ const parsed = envSchema.safeParse({
   NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
   NEXT_PUBLIC_AUTH_TOKEN_KEY: process.env.NEXT_PUBLIC_AUTH_TOKEN_KEY,
   NEXT_PUBLIC_REFRESH_TOKEN_KEY: process.env.NEXT_PUBLIC_REFRESH_TOKEN_KEY,
+  NEXT_PUBLIC_LOG_LEVEL: process.env.NEXT_PUBLIC_LOG_LEVEL,
 });
 
 if (!parsed.success) {

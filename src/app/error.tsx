@@ -11,7 +11,12 @@ type ErrorProps = {
 
 export default function GlobalError({ error, reset }: ErrorProps) {
   useEffect(() => {
-    logger.error("App error:", error);
+    logger.error("App error", {
+      name: error.name,
+      message: error.message,
+      digest: error.digest,
+      stack: error.stack,
+    });
   }, [error]);
 
   return (

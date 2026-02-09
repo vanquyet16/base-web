@@ -13,6 +13,13 @@ app-router boundaries. Designed to be a clean starting point for production work
 - App router error/loading/not-found pages
 - Consistent UI primitive with class-variance-authority
 - API services separated from React Query hooks
+- Structured logger with log levels
+- HTTP error handling + retry + token refresh hook
+- Route helpers to avoid hardcoded paths
+- Input validation utility (Zod)
+- Security headers via middleware
+- Vitest + Testing Library setup
+- Reusable client ErrorBoundary
 
 ## Scripts
 
@@ -21,6 +28,9 @@ app-router boundaries. Designed to be a clean starting point for production work
 - `npm run start`
 - `npm run lint`
 - `npm run typecheck`
+- `npm run test`
+- `npm run test:ui`
+- `npm run test:coverage`
 
 ## Structure
 
@@ -36,6 +46,57 @@ app-router boundaries. Designed to be a clean starting point for production work
 - `src/stores`: Zustand stores
 - `src/types`: Shared types
 - `src/utils`: Utility helpers
+- `src/middleware.ts`: Security headers
+- `src/components/errors`: Reusable error boundaries
+- `src/test`: Test setup files
+
+## Testing
+
+Vitest + Testing Library are configured via `vitest.config.ts`.
+
+Run:
+```
+npm run test
+```
+
+## Error Boundaries
+
+Use the reusable client boundary for isolated UI errors.
+
+```tsx
+import { ErrorBoundary } from "@/components/errors/ErrorBoundary";
+
+<ErrorBoundary>
+  <SomeComponent />
+</ErrorBoundary>
+```
+
+## Project Tree
+
+```
+src/
+  app/
+  components/
+    demo/
+    providers/
+    ui/
+  config/
+  constants/
+  hooks/
+    demo/
+  lib/
+    auth/
+  query/
+  services/
+    auth/
+    billing/
+    core/
+    demo/
+  stores/
+  styles/
+  types/
+  utils/
+```
 
 ## Environment
 
@@ -56,6 +117,44 @@ NEXT_PUBLIC_API_BASE_URLS={"core":"http://localhost:3000/api","auth":"http://loc
 1. Declare services in `src/config/services.ts`.
 2. Configure base URLs in `NEXT_PUBLIC_API_BASE_URLS`.
 3. Use `getHttpClient("<service>")` to call each microservice.
+
+## Error Handling (HTTP)
+
+`src/lib/http.ts` transforms Axios errors into `ApiError` and supports retries:
+
+- Auto retry with exponential backoff for 429/5xx/network errors
+- 401 handling via refresh handler
+
+To enable auto refresh:
+```ts
+import { setRefreshTokenHandler } from "@/lib/http";
+
+setRefreshTokenHandler(async () => {
+  // Call refresh endpoint, return new access token
+  return "new-access-token";
+});
+```
+
+## Logging
+
+Logger is structured and level-based:
+
+- `NEXT_PUBLIC_LOG_LEVEL=debug|info|warn|error`
+- Pretty logs in development, JSON logs in production
+
+## Validation
+
+Use `validateAndSanitize` before API calls:
+
+File: `src/lib/validation.ts`
+```ts
+import { z } from "zod";
+import { validateAndSanitize } from "@/lib/validation";
+
+const schema = z.object({ name: z.string().min(1) });
+const payload = validateAndSanitize(schema, formData);
+```
+
 
 ## Endpoint registry (route management)
 
@@ -146,6 +245,42 @@ export async function fetchDemoUser(): Promise<DemoUser> {
   return data;
 }
 ```
+
+## Usage Guide
+
+### 1) Add a microservice
+
+- Add domain in `.env.local`.
+- Register it in `src/config/services.ts`.
+
+### 2) Add routes (no hardcode)
+
+- Create `src/services/<service>/<service>.routes.ts`.
+- Use `buildPath` + `withQuery` from `src/services/routes.ts`.
+
+### 3) Add API functions
+
+- Create `src/services/<service>/<service>.api.ts`.
+- Use `getHttpClient("<service>")`.
+
+### 4) Add React Query hooks
+
+- Create `src/hooks/<service>/useSomething.ts`.
+- Use `queryKeys` from `src/query/keys.ts`.
+
+### 5) Use in UI
+
+- Call the hook inside client components.
+- Keep UI layer free of direct HTTP calls.
+
+## Security Headers
+
+Applied in `src/middleware.ts`:
+
+- `X-Frame-Options: DENY`
+- `X-Content-Type-Options: nosniff`
+- `Referrer-Policy: strict-origin-when-cross-origin`
+- `Permissions-Policy: camera=(), microphone=(), geolocation=()`
 
 ## Next Steps
 

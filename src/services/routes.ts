@@ -4,6 +4,9 @@ export type QueryParams = Record<string, QueryValue | QueryValue[]>;
 
 const paramRegex = /:([A-Za-z0-9_]+)/g;
 
+/**
+ * Build a route path with named params: `/users/:id` + `{ id: \"123\" }`.
+ */
 export function buildPath(template: string, params?: RouteParams) {
   if (!params) return template;
 
@@ -16,6 +19,9 @@ export function buildPath(template: string, params?: RouteParams) {
   });
 }
 
+/**
+ * Attach query parameters to a path. Filters out undefined/null values.
+ */
 export function withQuery(path: string, query?: QueryParams) {
   if (!query) return path;
 
