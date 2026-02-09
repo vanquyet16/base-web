@@ -1,36 +1,144 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Base Web
 
-## Getting Started
+Opinionated Next.js base with typed environment configuration, API layer, and
+app-router boundaries. Designed to be a clean starting point for production work.
 
-First, run the development server:
+## Highlights
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Typed env validation with Zod
+- Centralized axios client
+- Multi-service API domains support
+- React Query provider + devtools
+- Zustand store example
+- App router error/loading/not-found pages
+- Consistent UI primitive with class-variance-authority
+- API services separated from React Query hooks
+
+## Scripts
+
+- `npm run dev`
+- `npm run build`
+- `npm run start`
+- `npm run lint`
+- `npm run typecheck`
+
+## Structure
+
+- `src/app`: Routes and app-router boundaries
+- `src/components`: UI and providers
+- `src/config`: Service registry & API config
+- `src/constants`: App-level constants
+- `src/hooks`: React Query hooks (UI layer)
+- `src/lib`: Core utilities (env, http, logger)
+- `src/query`: Query key factories
+- `src/services`: API modules (no React Query inside)
+- `src/stores`: Zustand stores
+- `src/types`: Shared types
+- `src/utils`: Utility helpers
+
+## Environment
+
+Use `.env.example` as a template and copy to `.env.local`.
+
+### Multiple API domains
+
+Set `NEXT_PUBLIC_API_BASE_URLS` as a JSON map of `service -> base URL`.
+
+Example:
+```
+NEXT_PUBLIC_API_BASE_URL=http://localhost:3000/api
+NEXT_PUBLIC_API_BASE_URLS={"core":"http://localhost:3000/api","auth":"http://localhost:4000","billing":"http://localhost:5000"}
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Multi-service API workflow
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Declare services in `src/config/services.ts`.
+2. Configure base URLs in `NEXT_PUBLIC_API_BASE_URLS`.
+3. Use `getHttpClient("<service>")` to call each microservice.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Endpoint registry (route management)
 
-## Learn More
+Keep API paths centralized so changes are consistent and reviewable.
 
-To learn more about Next.js, take a look at the following resources:
+File: `src/services/core/core.routes.ts`
+```ts
+export const coreRoutes = {
+  users: {
+    me: () => "/users/me",
+    byId: (id: string) => `/users/${id}`,
+  },
+  auth: {
+    login: () => "/auth/login",
+  },
+};
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Example: Add a new API domain
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 1) Add domain in `.env.local`
+```
+NEXT_PUBLIC_API_BASE_URLS={"core":"http://localhost:3000/api","billing":"https://billing.example.com"}
+```
 
-## Deploy on Vercel
+### 2) Register the service
+File: `src/config/services.ts`
+```ts
+export const services = defineServices({
+  core: {
+    baseURL: env.NEXT_PUBLIC_API_BASE_URLS?.core ?? env.NEXT_PUBLIC_API_BASE_URL,
+    auth: "bearer",
+  },
+  billing: {
+    baseURL: env.NEXT_PUBLIC_API_BASE_URLS?.billing,
+    auth: "bearer",
+    timeout: 20_000,
+  },
+});
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 3) Create service API module
+File: `src/services/billing/billing.api.ts`
+```ts
+import { getHttpClient } from "@/lib/http";
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+const billingHttp = getHttpClient("billing");
+
+export async function fetchInvoices() {
+  const { data } = await billingHttp.get("/invoices");
+  return data;
+}
+```
+
+### 4) Create React Query hook (UI layer)
+File: `src/hooks/billing/useInvoices.ts`
+```ts
+import { useQuery } from "@tanstack/react-query";
+import { fetchInvoices } from "@/services/billing/billing.api";
+
+export function useInvoices() {
+  return useQuery({ queryKey: ["billing", "invoices"], queryFn: fetchInvoices });
+}
+```
+
+## Example: Call a real API in a service
+
+File: `src/services/demo/demo.api.ts`
+```ts
+import { getHttpClient } from "@/lib/http";
+import type { DemoUser } from "@/services/demo/demo.types";
+import { coreRoutes } from "@/services/core/core.routes";
+
+const coreHttp = getHttpClient("core");
+
+export async function fetchDemoUser(): Promise<DemoUser> {
+  const { data } = await coreHttp.get<DemoUser>(coreRoutes.users.me());
+  return data;
+}
+```
+
+## Next Steps
+
+Add domain features under `src/features` (if needed) and expand API modules
+under `src/services`.
+
+# base-web
