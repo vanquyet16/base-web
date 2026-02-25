@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import React from "react";
 
 import { logger } from "@/lib/logger";
+import type { LogContext } from "@/lib/logger";
 
 type ErrorBoundaryProps = {
   children: ReactNode;
@@ -15,10 +16,7 @@ type ErrorBoundaryState = {
   hasError: boolean;
 };
 
-export class ErrorBoundary extends React.Component<
-  ErrorBoundaryProps,
-  ErrorBoundaryState
-> {
+export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
   state: ErrorBoundaryState = {
     hasError: false,
   };
@@ -28,11 +26,13 @@ export class ErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error) {
-    logger.error("Component error", {
+    // Explicitly typed với LogContext để đảm bảo type-safety và document intent
+    const ctx: LogContext = {
       name: error.name,
       message: error.message,
       stack: error.stack,
-    });
+    };
+    logger.error("Component error", ctx);
   }
 
   handleReset = () => {
@@ -46,9 +46,7 @@ export class ErrorBoundary extends React.Component<
 
       return (
         <div className="rounded-2xl border border-[var(--border)] bg-white p-4 text-sm">
-          <p className="font-semibold text-[var(--foreground)]">
-            Something went wrong.
-          </p>
+          <p className="font-semibold text-[var(--foreground)]">Something went wrong.</p>
           <p className="mt-2 text-[var(--muted)]">Please try again.</p>
           <button
             className="mt-3 inline-flex h-9 items-center rounded-full bg-black px-4 text-xs font-medium text-white"

@@ -1,6 +1,17 @@
+import type { Metadata } from "next";
+
 import { Button } from "@/components/ui/Button";
 import ApiDemo from "@/components/demo/ApiDemo";
 import { APP_DESCRIPTION, APP_NAME } from "@/constants/app";
+
+/**
+ * Page-level metadata — override global metadata từ layout.tsx.
+ * Next.js merge metadata theo thứ tự ưu tiên: page > layout > root layout.
+ */
+export const metadata: Metadata = {
+  title: APP_NAME,
+  description: APP_DESCRIPTION,
+};
 
 export default function HomePage() {
   return (
@@ -14,18 +25,14 @@ export default function HomePage() {
             {APP_NAME}
           </h1>
           <p className="max-w-2xl text-base leading-7 text-[var(--muted)] sm:text-lg">
-            {APP_DESCRIPTION}. Opinionated structure, typed environment, API
-            layer, and first-class React Query setup.
+            {APP_DESCRIPTION}. Opinionated structure, typed environment, API layer, and first-class
+            React Query setup.
           </p>
         </header>
 
         <div className="flex flex-wrap items-center gap-3">
           <Button type="button">API Client Ready</Button>
-          <a
-            href="https://nextjs.org/docs"
-            target="_blank"
-            rel="noreferrer"
-          >
+          <a href="https://nextjs.org/docs" target="_blank" rel="noreferrer">
             <Button variant="secondary">Next.js Docs</Button>
           </a>
         </div>
@@ -53,12 +60,8 @@ export default function HomePage() {
               key={item.title}
               className="rounded-2xl border border-[var(--border)] bg-white p-6 shadow-[0_12px_32px_rgba(16,17,18,0.08)]"
             >
-              <h3 className="text-base font-semibold text-[var(--foreground)]">
-                {item.title}
-              </h3>
-              <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-                {item.copy}
-              </p>
+              <h3 className="text-base font-semibold text-[var(--foreground)]">{item.title}</h3>
+              <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{item.copy}</p>
             </div>
           ))}
         </div>

@@ -1,7 +1,18 @@
 import { env } from "@/lib/env";
 
 type LogLevel = "debug" | "info" | "warn" | "error";
+
+/**
+ * Type cho structured log context — dùng khi gọi logger.info/warn/error với metadata bổ sung.
+ * Export để consumer có thể type-check context objects của mình.
+ *
+ * @example
+ * import type { LogContext } from "@/lib";
+ * const ctx: LogContext = { userId: "123", action: "login" };
+ * logger.info("User logged in", ctx);
+ */
 export type LogContext = Record<string, unknown>;
+
 
 type LogEntry = {
   timestamp: string;

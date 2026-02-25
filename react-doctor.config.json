@@ -1,0 +1,28 @@
+{
+  "ignore": {
+    "rules": [],
+    "files": [
+      "vitest.config.ts",
+      "src/test/**",
+      "src/lib/__tests__/**",
+      "src/lib/index.ts",
+      "src/lib/http.ts",
+      "src/lib/validation.ts",
+      "src/lib/auth/token.ts",
+      "src/config/services.ts",
+      "src/services/index.ts",
+      "src/services/routes.ts",
+      "src/services/auth/**",
+      "src/services/billing/**",
+      "src/services/core/**",
+      "src/hooks/index.ts",
+      "src/hooks/useMounted.ts",
+      "src/stores/index.ts",
+      "src/stores/useUiStore.ts",
+      "src/utils/index.ts",
+      "src/utils/format.ts",
+      "src/utils/string.ts",
+      "src/types/api.ts"
+    ]
+  }
+}
